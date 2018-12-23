@@ -16,7 +16,7 @@ def main():
     print('st.upload:', st.upload() / (1024 * 1024), 'Mbps')
 
 
-def save_records(down_list, time_list, filename='down.txt'):
+def save_records(time_list, down_list, filename='down.txt'):
     """
     saves the mesured download speed and the time of the measurement to a local text file
     :param down_list: download info
@@ -60,7 +60,7 @@ def save_complaint(start_time, end_time, trigger_value, mean_value, filename='co
         the_file.write(start_time + ';' + end_time + ';' + str(trigger_value) + ';' + str(mean_value) + '\n')
 
 
-def prepare_complaint(down_list, time_list, value_trigger, duration_trigger):
+def prepare_complaint(time_list, down_list, value_trigger, duration_trigger):
     start_index = 0
     end_index = len(time_list) - 1
     is_down = False
@@ -94,26 +94,25 @@ def download_info(frequency=10, duration_covered=300, runs=5):
     time_list = []
     time_formatted_list = []
     for i in range(round(duration_covered / frequency)):
-        down_list.append(to_mbps(st.download()))
         time_list.append(round(time.time()))
-        time_formatted_list.append(time.strftime("%Y-%m-%d %H:%M:%S"))
+        down_list.append(to_mbps(st.download()))
         time.sleep(frequency)
-    return down_list, time_list
+    return time_list, down_list
 
 
 def download_graph(time_list, down_list, value_trigger):
     fig = plt.figure()
     plt.plot(time_list, down_list, 'b', time_list, [value_trigger for i in time_list], 'r')
-    fig.savefig('plots/{}.png'.format(time_list[0]))
+    fig.savefig('plots/{}.png'.format(to_datetime(time_list[0]).replace(':','-')))
 
 
 def down():
-    down_list, time_list = download_info(frequency=10, duration_covered=60, runs=5)
-    save_records(down_list, time_list)
-    value_trigger= 350
-    duration_trigger = 60
-    download_graph(down_list, time_list, value_trigger)
-    prepare_complaint(down_list, time_list, value_trigger, duration_trigger)
+    time_list, down_list = download_info(frequency=60, duration_covered=1800, runs=5)
+    save_records(time_list, down_list)
+    value_trigger = 500
+    duration_trigger = 120
+    download_graph(time_list, down_list, value_trigger)
+    prepare_complaint(time_list, down_list, value_trigger, duration_trigger)
 
 
 if __name__ == "__main__":
